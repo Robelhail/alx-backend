@@ -1,46 +1,56 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+"""LRU Cache Replacement Implementation Class
 """
-LRU Caching
-"""
+from threading import RLock
 
 BaseCaching = __import__('base_caching').BaseCaching
 
 
 class LRUCache(BaseCaching):
     """
-    class LRUCache that inherits from BaseCaching and is a caching system
-    """
+    An implementation of LRU(Last Recently Used) Cache
 
+    Attributes:
+        __keys (list): Stores cache keys from least to most accessed
+        __rlock (RLock): Lock accessed resources to prevent race condition
+    """
     def __init__(self):
-        """
-        Init method
+        """ Instantiation method, sets instance attributes
         """
         super().__init__()
-        self.lru_order = OrderedDict()
+        self.__keys = []
+        self.__rlock = RLock()
 
     def put(self, key, item):
+        """ Add an item in the cache
         """
-        Must assign to the dictionary self.cache_data
-        the item value for the key key.
-        """
-        if key and item:
-            self.lru_order[key] = item
-            self.lru_order.move_to_end(key)
-            self.cache_data[key] = item
-
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            item_discarded = next(iter(self.lru_order))
-            del self.cache_data[item_discarded]
-            print("DISCARD:", item_discarded)
-
-        if len(self.lru_order) > BaseCaching.MAX_ITEMS:
-            self.lru_order.popitem(last=False)
+        if key is not None and item is not None:
+            keyOut = self._balance(key)
+            with self.__rlock:
+                self.cache_data.update({key: item})
+            if keyOut is not None:
+                print('DISCARD: {}'.format(keyOut))
 
     def get(self, key):
+        """ Get an item by key
         """
-        Must return the value in self.cache_data linked to key.
+        with self.__rlock:
+            value = self.cache_data.get(key, None)
+            if key in self.__keys:
+                self._balance(key)
+        return value
+
+    def _balance(self, keyIn):
+        """ Removes the earliest item from the cache at MAX size
         """
-        if key in self.cache_data:
-            self.lru_order.move_to_end(key)
-            return self.cache_data[key]
-        return None
+        keyOut = None
+        with self.__rlock:
+            keysLength = len(self.__keys)
+            if keyIn not in self.__keys:
+                if len(self.cache_data) == BaseCaching.MAX_ITEMS:
+                    keyOut = self.__keys.pop(0)
+                    self.cache_data.pop(keyOut)
+            else:
+                self.__keys.remove(keyIn)
+            self.__keys.insert(keysLength, keyIn)
+        return keyOut
