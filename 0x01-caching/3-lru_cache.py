@@ -1,49 +1,46 @@
 #!/usr/bin/env python3
-"""Create a class LRUCache that inherits from
-BaseCaching and is a caching system:
-    """
-
-
+"""
+LRU Caching
+"""
 
 BaseCaching = __import__('base_caching').BaseCaching
 
 
 class LRUCache(BaseCaching):
-    """_summary_
+    """
+    class LRUCache that inherits from BaseCaching and is a caching system
     """
 
     def __init__(self):
-        """_summary_
+        """
+        Init method
         """
         super().__init__()
-        self.usedKeys = []
+        self.lru_order = OrderedDict()
 
     def put(self, key, item):
-        """_summary_
-
-        Args:
-                        key (_type_): _description_
-                        item (_type_): _description_
         """
-        if key is not None and item is not None:
+        Must assign to the dictionary self.cache_data
+        the item value for the key key.
+        """
+        if key and item:
+            self.lru_order[key] = item
+            self.lru_order.move_to_end(key)
             self.cache_data[key] = item
-            if key not in self.usedKeys:
-                self.usedKeys.append(key)
-            else:
-                self.usedKeys.append(
-                    self.usedKeys.pop(self.usedKeys.index(key)))
-            if len(self.usedKeys) > BaseCaching.MAX_ITEMS:
-                discard = self.usedKeys.pop(0)
-                del self.cache_data[discard]
-                print('DISCARD: {:s}'.format(discard))
+
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+            item_discarded = next(iter(self.lru_order))
+            del self.cache_data[item_discarded]
+            print("DISCARD:", item_discarded)
+
+        if len(self.lru_order) > BaseCaching.MAX_ITEMS:
+            self.lru_order.popitem(last=False)
 
     def get(self, key):
-        """return the value in self.cache_data linked to key
-
-        Args:
-                        key (_type_): _description_
         """
-        if key is not None and key in self.cache_data.keys():
-            self.usedKeys.append(self.usedKeys.pop(self.usedKeys.index(key)))
-            return self.cache_data.get(key)
+        Must return the value in self.cache_data linked to key.
+        """
+        if key in self.cache_data:
+            self.lru_order.move_to_end(key)
+            return self.cache_data[key]
         return None
