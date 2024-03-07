@@ -8,7 +8,7 @@ Back-endJavaScriptES6RedisNodeJSExpressJSKue
     Weight: 1
     Project will start Nov 27, 2023 6:00 AM, must end by Nov 30, 2023 6:00 AM
     Manual QA review must be done (request it when you are done with the project)
-
+robel hailemichael
 Resources
 
 Read or watch:
